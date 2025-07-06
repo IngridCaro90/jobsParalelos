@@ -1,51 +1,75 @@
-name: Operaciones matemáticas
+name: Operaciones Matemáticas
 
 on:
   workflow_dispatch:
     inputs:
       num1:
-        description: 'Primer número'
+        description: Primer número
         required: true
         type: integer
       num2:
-        description: 'Segundo número'
+        description: Segundo número
         required: true
         type: integer
 
 jobs:
   operaciones:
-    name: operacion matematica
+    name: Operación matemática
     runs-on: ubuntu-latest
     strategy:
       matrix:
         operacion: [suma, resta, multiplicacion, division]
+    outputs:
+      resultado_suma: ${{ steps.resultado.outputs.suma }}
+      resultado_resta: ${{ steps.resultado.outputs.resta }}
+      resultado_multiplicacion: ${{ steps.resultado.outputs.multiplicacion }}
+      resultado_division: ${{ steps.resultado.outputs.division }}
     steps:
       - name: Ejecutar operación ${{ matrix.operacion }}
+        id: resultado
         run: |
           num1=${{ github.event.inputs.num1 }}
           num2=${{ github.event.inputs.num2 }}
+          operacion=${{ matrix.operacion }}
 
-          echo "Operación: ${{ matrix.operacion }}"
-          
-          case "${{ matrix.operacion }}" in
+          echo "Operación: $operacion"
+
+          case "$operacion" in
             suma)
-              echo "Resultado: $((num1 + num2))"
+              resultado=$((num1 + num2))
+              echo "suma=$resultado" >> $GITHUB_OUTPUT
               ;;
             resta)
-              echo "Resultado: $((num1 - num2))"
+              resultado=$((num1 - num2))
+              echo "resta=$resultado" >> $GITHUB_OUTPUT
               ;;
             multiplicacion)
-              echo "Resultado: $((num1 * num2))"
+              resultado=$((num1 * num2))
+              echo "multiplicacion=$resultado" >> $GITHUB_OUTPUT
               ;;
             division)
               if [ "$num2" -ne 0 ]; then
-                echo "Resultado: $((num1 / num2))"
+                resultado=$((num1 / num2))
+                echo "division=$resultado" >> $GITHUB_OUTPUT
               else
-                echo "Error: División por cero no permitida"
+                echo "division=Error: División por cero" >> $GITHUB_OUTPUT
               fi
               ;;
             *)
-              echo "Operación no reconocida"
+              echo "Operación no válida"
               exit 1
               ;;
           esac
+
+  mostrar_resultados:
+    name: Mostrar Resultados
+    runs-on: ubuntu-latest
+    needs: operaciones
+    steps:
+      - name: Imprimir resultados
+        run: |
+          echo "Resultados de las operaciones:"
+          echo "Suma: ${{ needs.operaciones.outputs.resultado_suma }}"
+          echo "Resta: ${{ needs.operaciones.outputs.resultado_resta }}"
+          echo "Multiplicación: ${{ needs.operaciones.outputs.resultado_multiplicacion }}"
+          echo "División: ${{ needs.operaciones.outputs.resultado_division }}"
