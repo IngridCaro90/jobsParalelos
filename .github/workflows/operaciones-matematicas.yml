@@ -1,0 +1,51 @@
+name: Operaciones matemáticas
+
+on:
+  workflow_dispatch:
+    inputs:
+      num1:
+        description: 'Primer número'
+        required: true
+        type: integer
+      num2:
+        description: 'Segundo número'
+        required: true
+        type: integer
+
+jobs:
+  operaciones:
+    name: operacion matematica
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        operacion: [suma, resta, multiplicacion, division]
+    steps:
+      - name: Ejecutar operación ${{ matrix.operacion }}
+        run: |
+          num1=${{ github.event.inputs.num1 }}
+          num2=${{ github.event.inputs.num2 }}
+
+          echo "Operación: ${{ matrix.operacion }}"
+          
+          case "${{ matrix.operacion }}" in
+            suma)
+              echo "Resultado: $((num1 + num2))"
+              ;;
+            resta)
+              echo "Resultado: $((num1 - num2))"
+              ;;
+            multiplicacion)
+              echo "Resultado: $((num1 * num2))"
+              ;;
+            division)
+              if [ "$num2" -ne 0 ]; then
+                echo "Resultado: $((num1 / num2))"
+              else
+                echo "Error: División por cero no permitida"
+              fi
+              ;;
+            *)
+              echo "Operación no reconocida"
+              exit 1
+              ;;
+          esac
